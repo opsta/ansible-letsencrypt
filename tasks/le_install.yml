@@ -1,0 +1,3 @@
+---
+- name: Install acme.sh
+  shell: "{{ le_acme_command }} --version || curl https://get.acme.sh | sh"

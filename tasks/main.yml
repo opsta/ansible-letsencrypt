@@ -1,0 +1,9 @@
+---
+- name: Include OS family specific variables
+  include_vars: "{{ item }}"
+  with_first_found:
+    - "{{ ansible_os_family }}.yml"
+
+- include: le_pre.yml
+- include: le_install.yml
+- include: le_post.yml

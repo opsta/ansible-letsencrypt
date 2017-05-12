@@ -1,0 +1,21 @@
+---
+# Need to always return true because it always return error code if
+# domain already issued
+- name: Issue certificates (maybe need to wait for 30 seconds)
+  shell: "
+    {{ le_acme_command }} --issue --dns {{ item.dns }} --dnssleep 30
+    -d {{ item.domain }} || true"
+  environment:
+    CF_Key: "{{ item.cf_key | default('') }}"
+    CF_Email: "{{ item.cf_email | default('') }}"
+  with_items: "{{ le_domains }}"
+
+- name: Install the issued certificates
+  command: "
+    {{ le_acme_command }} --install-cert -d {{ item.domain }}
+    --key-file {{ item.key_path }}
+    --fullchain-file {{ item.fullchain_path }}"
+  when:
+    - item.key_path is defined
+    - item.fullchain_path is defined
+  with_items: "{{ le_domains }}"

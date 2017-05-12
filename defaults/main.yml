@@ -1,0 +1,13 @@
+---
+# le_domains:
+#   - domain: www.example.com
+#     dns: dns_cf
+#     cf_key: CHANGEME
+#     cf_email: contact@example.org
+#     key_path: /etc/ssl/private/www.example.com.key
+#     fullchain_path: /etc/ssl/private/www.example.com.cer
+#   - domain: www.example.org
+#     cf_key: CHANGEME
+#     cf_email: contact@example.org
+
+le_acme_command: ~/.acme.sh/acme.sh
