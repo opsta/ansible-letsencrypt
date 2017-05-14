@@ -10,6 +10,28 @@
     CF_Email: "{{ item.cf_email | default('') }}"
   with_items: "{{ le_domains }}"
 
+- name: Create certificate key directory
+  file:
+    path: "{{ item.key_path | dirname }}"
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+  when:
+    - item.key_path is defined
+  with_items: "{{ le_domains }}"
+
+- name: Create certificate fullchain directory
+  file:
+    path: "{{ item.fullchain_path | dirname }}"
+    state: directory
+    mode: 0700
+    owner: root
+    group: root
+  when:
+    - item.fullchain_path is defined
+  with_items: "{{ le_domains }}"
+
 - name: Install the issued certificates
   command: "
     {{ le_acme_command }} --install-cert -d {{ item.domain }}
