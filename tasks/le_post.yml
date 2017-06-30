@@ -2,8 +2,8 @@
 # Need to always return true because it always return error code if
 # domain already issued
 - name: Issue certificates (maybe need to wait for 30 seconds)
-  shell: >-
-    {{ le_acme_command }} --issue --dns {{ item.dns }} --dnssleep 30
+  shell: >
+    {{ le_acme_command }} --issue {{ item.method }} --dnssleep 30
     -d {{ item.domain }} || true
   environment:
     CF_Key: "{{ item.cf_key | default('') }}"
@@ -14,7 +14,7 @@
   file:
     path: "{{ item.key_path | dirname }}"
     state: directory
-    mode: 0700
+    mode: 0755
     owner: root
     group: root
   when:
@@ -25,7 +25,7 @@
   file:
     path: "{{ item.fullchain_path | dirname }}"
     state: directory
-    mode: 0700
+    mode: 0755
     owner: root
     group: root
   when:
@@ -33,7 +33,7 @@
   with_items: "{{ le_domains }}"
 
 - name: Install the issued certificates
-  command: >-
+  command: >
     {{ le_acme_command }} --install-cert -d {{ item.domain }}
     --key-file {{ item.key_path }}
     --fullchain-file {{ item.fullchain_path }}
