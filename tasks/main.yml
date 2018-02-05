@@ -7,3 +7,5 @@
 - include_tasks: le_pre.yml
 - include_tasks: le_install.yml
 - include_tasks: le_post.yml
+  tags:
+    - le-issue

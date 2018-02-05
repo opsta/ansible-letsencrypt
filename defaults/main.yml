@@ -6,6 +6,8 @@
 #     cf_key: CHANGEME
 #     cf_email: contact@example.org
 #     key_path: /etc/ssl/private/www.example.com.key
+#     # 0644 does not work sometimes
+#     key_chmod: u=rw,g=r,o=r
 #     fullchain_path: /etc/ssl/private/www.example.com.cer
 #   - domain: www.example.org
 #     method: dns
