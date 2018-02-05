@@ -4,5 +4,6 @@
   with_first_found:
     - "{{ ansible_os_family }}.yml"
 
-- include: le_install.yml
-- include: le_post.yml
+- include_tasks: le_pre.yml
+- include_tasks: le_install.yml
+- include_tasks: le_post.yml
