@@ -9,6 +9,8 @@
     CF_Key: "{{ item.cf_key | default('') }}"
     CF_Email: "{{ item.cf_email | default('') }}"
   with_items: "{{ le_domains }}"
+  register: le_issue_cmd
+  failed_when: le_issue_cmd.rc != 0 and le_issue_cmd.rc != 2
 
 - name: Create certificate key directory
   file:
@@ -40,4 +42,13 @@
   when:
     - item.key_path is defined
     - item.fullchain_path is defined
+  with_items: "{{ le_domains }}"
+
+- name: Change permission of installed issued certificates
+  file:
+    path: "{{ item.key_path }}"
+    mode: "{{ item.key_chmod }}"
+  when:
+    - item.key_chmod is defined
+    - item.key_path is defined
   with_items: "{{ le_domains }}"
