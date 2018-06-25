@@ -1,54 +1,105 @@
 ---
-# Need to always return true because it always return error code if
-# domain already issued
-- name: Issue certificates (maybe need to wait for 30 seconds)
-  shell: >
-    {{ le_acme_command }} --issue --{{ item.method }} --dnssleep 30
-    -d {{ item.domain }}
-  environment:
-    CF_Key: "{{ item.cf_key | default('') }}"
-    CF_Email: "{{ item.cf_email | default('') }}"
-  with_items: "{{ le_domains }}"
-  register: le_issue_cmd
-  failed_when: le_issue_cmd.rc != 0 and le_issue_cmd.rc != 2
+- block: # pre-task 
+  - name: Stop the services
+    service:
+      name: "{{ item.service }}"
+      state: stopped
+    when: item.service is defined
+    with_items: "{{ le_domains }}"
 
-- name: Create certificate key directory
-  file:
-    path: "{{ item.key_path | dirname }}"
-    state: directory
-    mode: 0755
-    owner: root
-    group: root
-  when:
-    - item.key_path is defined
+  - name: Waiting for HTTP port closed
+    wait_for:
+      host: "{{ item.domain }}"
+      port: 80
+      state: stopped
+    with_items: "{{ le_domains }}"
+
+- block: # install SSL certificate
+  # Need to always return true because it always return error code if
+  # domain already issued
+  - name: Issue certificates (maybe need to wait for 30 seconds)
+    shell: >
+      {{ le_acme_command }} --issue --{{ item.method }} --dnssleep 30
+      -d {{ item.domain }}
+    environment:
+      CF_Key: "{{ item.cf_key | default('') }}"
+      CF_Email: "{{ item.cf_email | default('') }}"
+    with_items: "{{ le_domains }}"
+    register: le_issue_cmd
+    failed_when: le_issue_cmd.rc != 0 and le_issue_cmd.rc != 2
+
+  - name: Create certificate key directory
+    file:
+      path: "{{ item.key_path | dirname }}"
+      state: directory
+      mode: 0755
+      owner: root
+      group: root
+    when:
+      - item.key_path is defined
+    with_items: "{{ le_domains }}"
+
+  - name: Create certificate fullchain directory
+    file:
+      path: "{{ item.fullchain_path | dirname }}"
+      state: directory
+      mode: 0755
+      owner: root
+      group: root
+    when:
+      - item.fullchain_path is defined
+    with_items: "{{ le_domains }}"
+
+  - name: Install the issued certificates
+    command: >
+      {{ le_acme_command }} --install-cert -d {{ item.domain }}
+      --key-file {{ item.key_path }}
+      --fullchain-file {{ item.fullchain_path }}
+    when:
+      - item.key_path is defined
+      - item.fullchain_path is defined
+    with_items: "{{ le_domains }}"
+
+  - name: Change permission of installed issued certificates
+    file:
+      path: "{{ item.key_path }}"
+      mode: "{{ item.key_chmod }}"
+    when:
+      - item.key_chmod is defined
+      - item.key_path is defined
+    with_items: "{{ le_domains }}"
+
+- name: Start the services
+  service:
+    name: "{{ item.service }}"
+    state: started
+  when: item.service is defined
   with_items: "{{ le_domains }}"
 
-- name: Create certificate fullchain directory
-  file:
-    path: "{{ item.fullchain_path | dirname }}"
-    state: directory
-    mode: 0755
-    owner: root
-    group: root
-  when:
-    - item.fullchain_path is defined
+- name: Waiting for HTTP port available (60 seconds)
+  wait_for:
+    host: "{{ item.domain }}"
+    port: 80
+    state: started
+    timeout: 60
   with_items: "{{ le_domains }}"
+  register: result_service_started
+  ignore_errors: yes
 
-- name: Install the issued certificates
-  command: >
-    {{ le_acme_command }} --install-cert -d {{ item.domain }}
-    --key-file {{ item.key_path }}
-    --fullchain-file {{ item.fullchain_path }}
-  when:
-    - item.key_path is defined
-    - item.fullchain_path is defined
-  with_items: "{{ le_domains }}"
+- block: # post-task
+  - name: Start the services (fallback)
+    service:
+      name: "{{ item.service }}"
+      state: started
+    when:
+      - result_service_started is failed
+      - item.service is defined
+    with_items: "{{ le_domains }}"
 
-- name: Change permission of installed issued certificates
-  file:
-    path: "{{ item.key_path }}"
-    mode: "{{ item.key_chmod }}"
-  when:
-    - item.key_chmod is defined
-    - item.key_path is defined
-  with_items: "{{ le_domains }}"
+  - name: Waiting for HTTP port available (fallback)
+    wait_for:
+      host: "{{ item.domain }}"
+      port: 80
+      state: started
+    when: result_service_started is failed
+    with_items: "{{ le_domains }}"
