@@ -1,8 +1,19 @@
 ---
-- name: Install acme.sh dependencies
+- name: Install acme.sh dependencies (Debain)
   apt:
     name: "{{ item }}"
     state: present
     update_cache: yes
+  when: ansible_os_family == "Debian"
   with_items:
     - "{{ le_apt_dependencies }}"
+
+- name: Install acme.sh dependencies (RedHat)
+  yum:
+    name: "{{ item }}"
+    state: present
+    update_cache: yes
+  when: ansible_os_family == "RedHat"
+  with_items:
+    - "{{ le_apt_dependencies }}"
+  
