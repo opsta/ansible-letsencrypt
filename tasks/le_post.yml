@@ -3,7 +3,7 @@
 # domain already issued
 - name: Issue certificates (maybe need to wait for 30 seconds)
   shell: >
-    {{ le_acme_command }} --issue --{{ item.method }} --dnssleep 30
+    {{ le_acme_command }} --issue --{{ item.method }} {{ item.dns | default('') }} --dnssleep 30
     -d {{ item.domain }}
   environment:
     CF_Key: "{{ item.cf_key | default('') }}"

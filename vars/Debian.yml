@@ -1,3 +1,4 @@
 ---
 le_apt_dependencies:
   - socat
+  - curl
