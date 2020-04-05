@@ -6,6 +6,9 @@
     {{ le_acme_command }} --issue --{{ item.method }} {{ item.dns | default('') }} --dnssleep 30
     -d {{ item.domain }}
   environment:
+    CF_Token: "{{ item.cf_token | default('') }}"
+    CF_Account_ID: "{{ item.cf_account_id | default('') }}"
+    CF_Zone_ID: "{{ item.cf_zone_id | default('') }}"
     CF_Key: "{{ item.cf_key | default('') }}"
     CF_Email: "{{ item.cf_email | default('') }}"
   with_items: "{{ le_domains }}"
