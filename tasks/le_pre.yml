@@ -1,6 +1,6 @@
 ---
 - name: Install acme.sh dependencies
-  apt:
+  package:
     name: "{{ le_apt_dependencies }}"
     state: present
     update_cache: yes
