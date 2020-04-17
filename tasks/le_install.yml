@@ -1,3 +1,6 @@
 ---
 - name: Install acme.sh
   shell: "{{ le_acme_command }} --version || curl https://get.acme.sh | sh"
+
+# TODO When method = standalone. We need to remove default cron and install new cron to have
+# --pre-hook to stop nginx first then --post-hook to start nginx again
