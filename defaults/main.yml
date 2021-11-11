@@ -17,3 +17,4 @@
 #     method: standalone
 
 le_acme_command: ~/.acme.sh/acme.sh
+le_acme_ca: letsencrypt
