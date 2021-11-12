@@ -1,6 +1,9 @@
 ---
 # Need to always return true because it always return error code if
 # domain already issued
+- name: Change default CA
+  shell: "{{ le_acme_command }} --set-default-ca  --server {{ le_acme_ca }}"
+
 - name: Issue certificates (maybe need to wait for 30 seconds)
   shell: >
     {{ le_acme_command }} --issue --{{ item.method }} {{ item.dns | default('') }} --dnssleep 60
